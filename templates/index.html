@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 자기소개서 생성기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>AI 자기소개서 생성기</h1>
+        <p class="description">입력하신 정보를 바탕으로 맞춤형 자기소개서를 생성해드립니다.</p>
+        
+        <form id="coverLetterForm">
+            <div class="form-group">
+                <label for="name">이름</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="major">전공</label>
+                <input type="text" id="major" name="major" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="job_title">채용공고</label>
+                <textarea id="job_title" name="job_title" placeholder="지원하시는 채용공고의 제목을 입력해주세요. (예: 2024년 상반기 신입 개발자 채용)" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="company_type">회사 유형</label>
+                <select id="company_type" name="company_type" required>
+                    <option value="중소기업">중소기업</option>
+                    <option value="대기업">대기업</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="recruitment_requirements">모집요강</label>
+                <textarea id="recruitment_requirements" name="recruitment_requirements" placeholder="회사에서 요구하는 자격요건, 우대사항, 직무 설명 등을 입력해주세요." required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="introduction">자기소개</label>
+                <textarea id="introduction" name="introduction" placeholder="자신을 간단히 소개해주세요." required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="personality">성격의 장단점</label>
+                <textarea id="personality" name="personality" placeholder="자신의 성격 중 장점과 단점을 입력해주세요. (선택사항 - 입력하지 않으면 자동으로 생성됩니다)"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="major_experience">주요 경험</label>
+                <textarea id="major_experience" name="major_experience" placeholder="관련 경험, 프로젝트, 수상 경력 등을 입력해주세요." required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="motivation">지원동기</label>
+                <textarea id="motivation" name="motivation" placeholder="해당 직무를 지원하게 된 동기와 회사에 지원하게 된 이유를 입력해주세요. (선택사항 - 입력하지 않으면 자동으로 생성됩니다)"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="conclusion">맺음말</label>
+                <textarea id="conclusion" name="conclusion" placeholder="마지막으로 하고 싶은 말을 입력해주세요. (선택사항 - 입력하지 않으면 자동으로 생성됩니다)"></textarea>
+            </div>
+            
+            <button type="submit">자기소개서 생성하기</button>
+        </form>
+        
+        <div id="resultContainer" class="result-container">
+            <div class="actions">
+                <button class="copy-btn" onclick="copyToClipboard()">복사하기</button>
+                <button class="download-btn" onclick="downloadAsText()">다운로드</button>
+            </div>
+            <div id="coverLetter" class="cover-letter"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('coverLetterForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                major: document.getElementById('major').value,
+                job_title: document.getElementById('job_title').value,
+                company_type: document.getElementById('company_type').value,
+                recruitment_requirements: document.getElementById('recruitment_requirements').value,
+                introduction: document.getElementById('introduction').value,
+                personality: document.getElementById('personality').value,
+                major_experience: document.getElementById('major_experience').value,
+                motivation: document.getElementById('motivation').value,
+                conclusion: document.getElementById('conclusion').value
+            };
+            
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.cover_letter) {
+                    document.getElementById('coverLetter').textContent = data.cover_letter;
+                    document.getElementById('resultContainer').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('자기소개서 생성 중 오류가 발생했습니다.');
+            }
+        });
+
+        function copyToClipboard() {
+            const coverLetter = document.getElementById('coverLetter').textContent;
+            navigator.clipboard.writeText(coverLetter).then(() => {
+                alert('자기소개서가 클립보드에 복사되었습니다.');
+            });
+        }
+
+        function downloadAsText() {
+            const coverLetter = document.getElementById('coverLetter').textContent;
+            const blob = new Blob([coverLetter], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '자기소개서.txt';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html> 
